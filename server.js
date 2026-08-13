@@ -1,17 +1,18 @@
-require("dotenv").config();
+++++++require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+
+
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
-const serviceAccount = require("./firebase-service-account.json");
 
-initializeApp({
-  credential: cert(serviceAccount)
-});
-const jwt = require("jsonwebtoken");
+
+initializeApp();
+
+++const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
