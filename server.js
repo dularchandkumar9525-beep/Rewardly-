@@ -12,7 +12,7 @@ const { getAuth } = require("firebase-admin/auth");
 
 initializeApp();
 
-++const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
