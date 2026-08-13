@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rewardly</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#f4f7fb;color:#172033}header{background:#fff;padding:16px;position:sticky;top:0;box-shadow:0 1px 8px #ddd;display:flex;justify-content:space-between}main{max-width:760px;margin:auto;padding:18px}.card{background:#fff;border-radius:16px;padding:18px;margin:12px 0;box-shadow:0 2px 12px #e3e7ef}input,select,button{width:100%;padding:13px;margin:7px 0;border-radius:10px;border:1px solid #ccd3df;font-size:16px}button{background:#2563eb;color:#fff;border:0;font-weight:bold}.danger{background:#dc2626}.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.tabs button{font-size:13px}.points{font-size:34px;font-weight:bold}.muted{color:#687386}.hide{display:none}.row{display:flex;gap:10px}.row>*{flex:1}</style></head>
+<body><header><b>🎁 Rewardly</b><span id="who"></span></header><main>
+<div id="auth"><div class="card"><h2>Login</h2><input id="le" placeholder="Email"><input id="lp" type="password" placeholder="Password"><button onclick="login()">Login</button><hr><h2>Create account</h2><input id="rn" placeholder="Name"><input id="re" placeholder="Email"><input id="rp" type="password" placeholder="Password (8+ chars)"><input id="rr" placeholder="Referral code (optional)"><button onclick="register()">Register</button><p id="msg"></p></div></div>
+<div id="app" class="hide"><div class="tabs"><button onclick="home()">Home</button><button onclick="tasks()">Tasks</button><button onclick="wallet()">Wallet</button><button onclick="ref()">Referral</button></div><div id="view"></div><button class="danger" onclick="logout()">Logout</button></div>
+</main><script>
+let T=localStorage.rewardToken||"",V=document.getElementById("view");
+const api=async(u,o={})=>{o.headers={...(o.headers||{}),Authorization:"Bearer "+T,"Content-Type":"application/json"};let r=await fetch(u,o),d=await r.json();if(!r.ok)throw Error(d.error||"Error");return d};
+function showApp(){document.getElementById("auth").classList.add("hide");document.getElementById("app").classList.remove("hide");home()}
+async function login(){try{let d=await api("/api/login",{method:"POST",body:JSON.stringify({email:le.value,password:lp.value})});T=d.token;localStorage.rewardToken=T;showApp()}catch(e){msg.textContent=e.message}}
+async function register(){try{let d=await api("/api/register",{method:"POST",body:JSON.stringify({name:rn.value,email:re.value,password:rp.value,referralCode:rr.value})});T=d.token;localStorage.rewardToken=T;showApp()}catch(e){msg.textContent=e.message}}
+async function home(){let d=await api("/api/me");who.textContent=d.user.name;V.innerHTML=`<div class=card><div class=muted>Available points</div><div class=points>${d.user.points}</div><button onclick="bonus()">🎁 Claim daily bonus</button></div><div class=card><h3>Withdraw</h3><input id=wp type=number placeholder="Points (minimum 10000)"><select id=wm><option>UPI</option><option>BANK</option></select><input id=wd placeholder="UPI ID or bank payout details"><button onclick="withdraw()">Request withdrawal</button></div>`}
+async function bonus(){try{await api("/api/bonus",{method:"POST"});home()}catch(e){alert(e.message)}}
+async function tasks(){let d=await api("/api/tasks");V.innerHTML="<h2>Earn Points</h2>"+d.tasks.map(t=>`<div class=card><h3>${t.title}</h3><p>${t.description}</p><b>+${t.reward} points</b><button onclick="doTask(${t.id})">Complete</button></div>`).join("")}
+async function doTask(id){try{await api("/api/tasks/"+id,{method:"POST"});alert("Reward added");tasks()}catch(e){alert(e.message)}}
+async function wallet(){let d=await api("/api/wallet");V.innerHTML=`<div class=card><h2>${d.user.points} points</h2><p>Recent transactions</p>${d.transactions.map(x=>`<p>${x.note} — <b>${x.points>0?"+":""}${x.points}</b></p>`).join("")||"<p class=muted>No transactions yet</p>"}</div>`}
+async function ref(){let d=await api("/api/referral");V.innerHTML=`<div class=card><h2>Referral</h2><p>Your code</p><div class=points>${d.code}</div><p>${d.count} friends joined</p><p>Share your code with friends and earn referral rewards.</p></div>`}
+async function withdraw(){try{await api("/api/withdraw",{method:"POST",body:JSON.stringify({points:Number(wp.value),method:wm.value,destination:wd.value})});alert("Withdrawal request submitted");home()}catch(e){alert(e.message)}}
+function logout(){localStorage.removeItem("rewardToken");location.reload()}
+if(T)showApp()
+</script></body></html>

@@ -1,0 +1,203 @@
+{
+  "users": [
+    {
+      "id": 1786563603030,
+      "name": "Admin",
+      "email": "admin@example.com",
+      "password_hash": "$2b$12$oea1iYMGuSuCM4r1CngnCua48j/JyvorlgzS.I2HBdHYHi8pX9ufy",
+      "points": 0,
+      "referral_code": "RW6R36ER",
+      "role": "admin"
+    },
+    {
+      "id": 1786564891278,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$JMmcPM8fCmPzNXnTWbLyA.69IAWYUsvyZZXRz6oH1ZYx4S1iQhI8u",
+      "points": 0,
+      "referral_code": "RWCJCH5R",
+      "referred_by": null,
+      "role": "user",
+      "firebase_uid": "MgRZPWdREZOHCSo0Sye1zUkwUt73"
+    },
+    {
+      "id": 1786564891457,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$iZcbM/XZPznaj4EoUE6o8OXpnVnhJ3QGATDstKgHblzn1em5lK6om",
+      "points": 0,
+      "referral_code": "RWL3KXU7",
+      "referred_by": null,
+      "role": "user"
+    },
+    {
+      "id": 1786564891665,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$rB.tkFz0nPWDPIG9L4w4MeOb51asVZNOWJMT4AgdESawfiVbSJ6Xi",
+      "points": 0,
+      "referral_code": "RW76IHX6",
+      "referred_by": null,
+      "role": "user"
+    },
+    {
+      "id": 1786564891977,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$fzjhfXHJusORed06tOCJ6.MAbVxg4w62.ctCR6RXIuRvlEtJYSo2K",
+      "points": 0,
+      "referral_code": "RWB5JG33",
+      "referred_by": null,
+      "role": "user"
+    },
+    {
+      "id": 1786564892383,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$kB.slVDTA0AIVvEV9EQ6xO/u5EumlISc2b4UoLbhcrc6gRNVR3Gi6",
+      "points": 0,
+      "referral_code": "RWQB9YMZ",
+      "referred_by": null,
+      "role": "user"
+    },
+    {
+      "id": 1786564892891,
+      "name": "Raj",
+      "email": "kdular83@gmail.com",
+      "password_hash": "$2b$12$ucMCP1Uz0wPIfnJTqcSY7exodoTwc8fcCeD7.h/9fIPVFO4mrBjW2",
+      "points": 2000,
+      "referral_code": "RWL8A8FN",
+      "referred_by": null,
+      "role": "user"
+    },
+    {
+      "id": 1786614426414,
+      "firebase_uid": "kLjHbLDvUCRQKGz9MMeJGlyM8H72",
+      "name": "Pritam",
+      "email": "pritam42158@gmail.com",
+      "password_hash": "",
+      "points": 2000,
+      "referral_code": "RWC5FWOI",
+      "role": "user"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Daily Quiz",
+      "description": "Complete the quiz task",
+      "reward": 300,
+      "active": true
+    },
+    {
+      "id": 2,
+      "title": "Quick Survey",
+      "description": "Complete an eligible survey",
+      "reward": 500,
+      "active": true
+    },
+    {
+      "id": 3,
+      "title": "Partner Offer",
+      "description": "Complete a verified offer",
+      "reward": 1000,
+      "active": true
+    }
+  ],
+  "completions": [
+    {
+      "user_id": 1786564892891,
+      "task_id": 3
+    },
+    {
+      "user_id": 1786564892891,
+      "task_id": 2
+    },
+    {
+      "user_id": 1786564892891,
+      "task_id": 1
+    },
+    {
+      "user_id": 1786614426414,
+      "task_id": 1,
+      "at": "2026-08-13T10:07:24.700Z"
+    },
+    {
+      "user_id": 1786614426414,
+      "task_id": 2,
+      "at": "2026-08-13T10:07:30.081Z"
+    },
+    {
+      "user_id": 1786614426414,
+      "task_id": 3,
+      "at": "2026-08-13T10:07:37.334Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": 1786564939331,
+      "user_id": 1786564892891,
+      "type": "bonus",
+      "points": 200,
+      "note": "Daily bonus",
+      "at": "2026-08-12T20:02:19.331Z"
+    },
+    {
+      "id": 1786565389891,
+      "user_id": 1786564892891,
+      "type": "task",
+      "points": 1000,
+      "note": "Partner Offer",
+      "at": "2026-08-12T20:09:49.892Z"
+    },
+    {
+      "id": 1786565397993,
+      "user_id": 1786564892891,
+      "type": "task",
+      "points": 500,
+      "note": "Quick Survey",
+      "at": "2026-08-12T20:09:57.993Z"
+    },
+    {
+      "id": 1786565400350,
+      "user_id": 1786564892891,
+      "type": "task",
+      "points": 300,
+      "note": "Daily Quiz",
+      "at": "2026-08-12T20:10:00.350Z"
+    },
+    {
+      "id": 1786615644707,
+      "user_id": 1786614426414,
+      "type": "task",
+      "points": 300,
+      "note": "Daily Quiz",
+      "at": "2026-08-13T10:07:24.707Z"
+    },
+    {
+      "id": 1786615650081,
+      "user_id": 1786614426414,
+      "type": "task",
+      "points": 500,
+      "note": "Quick Survey",
+      "at": "2026-08-13T10:07:30.081Z"
+    },
+    {
+      "id": 1786615653996,
+      "user_id": 1786614426414,
+      "type": "bonus",
+      "points": 200,
+      "note": "Daily bonus",
+      "at": "2026-08-13T10:07:33.996Z"
+    },
+    {
+      "id": 1786615657334,
+      "user_id": 1786614426414,
+      "type": "task",
+      "points": 1000,
+      "note": "Partner Offer",
+      "at": "2026-08-13T10:07:37.334Z"
+    }
+  ],
+  "withdrawals": []
+}

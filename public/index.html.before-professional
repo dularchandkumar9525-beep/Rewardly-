@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rewardly</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:#f4f6f9;color:#222}
+.container{max-width:600px;margin:auto;padding:16px}
+.card{background:white;border-radius:16px;padding:20px;margin-bottom:15px;box-shadow:0 3px 12px #0001}
+h1,h2,h3{margin-top:0}
+button{width:100%;border:0;border-radius:10px;padding:13px;margin-top:8px;font-size:15px;font-weight:bold;cursor:pointer}
+.google{background:#4285f4;color:white}
+.phone{background:#25d366;color:white}
+.dark{background:#222;color:white}
+.red{background:#e53935;color:white}
+input{width:100%;padding:12px;border:1px solid #ddd;border-radius:9px;margin-top:8px}
+#dashboard{display:none}
+.points{font-size:34px;font-weight:bold}
+.task{border:1px solid #eee;padding:15px;border-radius:12px;margin-top:10px}
+.small{color:#777;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="login" class="card">
+<h1>🎁 Rewardly</h1>
+<p>Earn rewards and manage your wallet</p>
+
+<button class="google" onclick="loginWithGoogle()">Continue with Google</button>
+<button class="phone" onclick="showPhone()">Continue with Phone OTP</button>
+
+<div id="phoneBox" style="display:none">
+<input id="phoneNumber" placeholder="+919876543210">
+<div id="recaptcha-container"></div>
+<button class="dark" onclick="sendOTP()">Send OTP</button>
+
+<div id="otpBox" style="display:none">
+<input id="otpCode" placeholder="Enter OTP">
+<button class="dark" onclick="verifyOTP()">Verify OTP</button>
+</div>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+
+<div class="card">
+<h2>👋 Welcome, <span id="userName">User</span></h2>
+<p id="userEmail" class="small"></p>
+</div>
+
+<div class="card">
+<p>💰 Your Points</p>
+<div class="points" id="points">0</div>
+<p class="small">100 points = ₹1</p>
+</div>
+
+<div class="card">
+<h3>🎯 Available Tasks</h3>
+<div id="tasks">Loading tasks...</div>
+</div>
+
+<div class="card">
+<h3>🎁 Daily Bonus</h3>
+<p>Come back every day and claim your bonus.</p>
+<button class="dark" onclick="claimBonus()">Claim Daily Bonus</button>
+</div>
+
+<div class="card">
+<h3>👥 Referral</h3>
+<p>Your referral code:</p>
+<h2 id="referral">---</h2>
+<p class="small">Share your code with friends and earn referral rewards.</p>
+</div>
+
+<div class="card">
+<h3>💸 Withdraw</h3>
+<input id="withdrawPoints" type="number" placeholder="Points to withdraw">
+<input id="withdrawMethod" placeholder="UPI ID">
+<button class="dark" onclick="withdraw()">Request Withdrawal</button>
+</div>
+
+<div class="card">
+<h3>💳 Add Money</h3>
+<button class="dark" onclick="addMoney(10)">Add ₹10</button>
+<button class="dark" onclick="addMoney(50)">Add ₹50</button>
+</div>
+
+<div class="card">
+<button class="red" onclick="logout()">Logout</button>
+</div>
+
+</div>
+</div>
+
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyBaLYru0CZjVXxc4sU0KEiHw0mcz-8LiQY",
+authDomain:"rewardly-5e54a.firebaseapp.com",
+projectId:"rewardly-5e54a",
+storageBucket:"rewardly-5e54a.firebasestorage.app",
+messagingSenderId:"648357307052",
+appId:"1:648357307052:web:9732089e2bb0b4bbb4f509",
+measurementId:"G-ET7FJLYGGT"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const api=async(url,options={})=>{
+const token=localStorage.getItem("token");
+options.headers={
+"Content-Type":"application/json",
+...(options.headers||{})
+};
+if(token) options.headers.Authorization="Bearer "+token;
+const r=await fetch(url,options);
+const text=await r.text();
+
+try{
+return JSON.parse(text);
+}catch{
+throw new Error("Server returned an invalid response");
+}
+};
+
+function loginWithGoogle(){
+const provider=new firebase.auth.GoogleAuthProvider();
+firebase.auth().signInWithPopup(provider)
+.then(r=>sendToken(r.user))
+.catch(e=>alert(e.message));
+}
+
+function showPhone(){
+document.getElementById("phoneBox").style.display="block";
+
+if(!window.recaptchaVerifier){
+window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
+"recaptcha-container",{size:"invisible"}
+);
+}
+}
+
+function sendOTP(){
+const phone=document.getElementById("phoneNumber").value.trim();
+
+if(!phone)return alert("Enter phone number with country code");
+
+firebase.auth().signInWithPhoneNumber(phone,window.recaptchaVerifier)
+.then(result=>{
+window.confirmationResult=result;
+document.getElementById("otpBox").style.display="block";
+alert("OTP sent");
+})
+.catch(e=>alert(e.message));
+}
+
+function verifyOTP(){
+const code=document.getElementById("otpCode").value.trim();
+
+window.confirmationResult.confirm(code)
+.then(r=>sendToken(r.user))
+.catch(e=>alert("Invalid OTP: "+e.message));
+}
+
+async function sendToken(user){
+try{
+const idToken=await user.getIdToken();
+
+const data=await api("/api/auth/firebase",{
+method:"POST",
+body:JSON.stringify({idToken})
+});
+
+if(!data.ok)throw new Error(data.error||"Authentication failed");
+
+localStorage.setItem("token",data.token);
+localStorage.setItem("user",JSON.stringify(data.user));
+
+await loadDashboard();
+
+}catch(e){
+alert("Login error: "+e.message);
+}
+}
+
+async function loadDashboard(){
+try{
+const me=await api("/api/me");
+
+if(!me.user){
+throw new Error("User not found");
+}
+
+document.getElementById("login").style.display="none";
+document.getElementById("dashboard").style.display="block";
+
+document.getElementById("userName").textContent=me.user.name||"User";
+document.getElementById("userEmail").textContent=me.user.email||"";
+document.getElementById("points").textContent=me.user.points||0;
+document.getElementById("referral").textContent=me.user.referral_code||"---";
+
+loadTasks();
+
+}catch(e){
+console.log(e);
+
+localStorage.removeItem("token");
+localStorage.removeItem("user");
+
+document.getElementById("login").style.display="block";
+document.getElementById("dashboard").style.display="none";
+}
+}
+
+async function loadTasks(){
+try{
+const data=await api("/api/tasks");
+const box=document.getElementById("tasks");
+
+if(!data.tasks||data.tasks.length===0){
+box.innerHTML="<p>No tasks available right now.</p>";
+return;
+}
+
+box.innerHTML="";
+
+data.tasks.forEach(task=>{
+const div=document.createElement("div");
+div.className="task";
+
+div.innerHTML=
+"<b>"+task.title+"</b>"+
+"<p>"+task.description+"</p>"+
+"<p>Reward: "+task.reward+" points</p>"+
+"<button class='dark'>Complete Task</button>";
+
+div.querySelector("button").onclick=async()=>{
+try{
+const result=await api("/api/tasks/"+task.id,{method:"POST"});
+
+if(result.error)alert(result.error);
+else{
+alert("Task completed!");
+loadDashboard();
+}
+}catch(e){
+alert(e.message);
+}
+};
+
+box.appendChild(div);
+});
+
+}catch(e){
+document.getElementById("tasks").textContent="Unable to load tasks";
+}
+}
+
+async function claimBonus(){
+try{
+const data=await api("/api/bonus",{method:"POST"});
+
+if(data.error)alert(data.error);
+else{
+alert("Bonus claimed!");
+loadDashboard();
+}
+
+}catch(e){
+alert(e.message);
+}
+}
+
+async function withdraw(){
+const points=Number(document.getElementById("withdrawPoints").value);
+const method=document.getElementById("withdrawMethod").value.trim();
+
+if(!points||!method)return alert("Enter points and UPI ID");
+
+try{
+const data=await api("/api/withdraw",{
+method:"POST",
+body:JSON.stringify({
+points:points,
+method:method
+})
+});
+
+if(data.error)alert(data.error);
+else{
+alert("Withdrawal request submitted!");
+loadDashboard();
+}
+
+}catch(e){
+alert(e.message);
+}
+}
+
+async function addMoney(amount){
+try{
+const data=await api("/api/payment/create-order",{
+method:"POST",
+body:JSON.stringify({amount:amount})
+});
+
+if(!data.order){
+alert(data.error||"Payment order failed");
+return;
+}
+
+const options={
+key:data.key_id,
+amount:data.order.amount,
+currency:"INR",
+name:"Rewardly",
+description:"Add money to wallet",
+order_id:data.order.id,
+
+handler:async function(response){
+
+const verify=await api("/api/payment/verify",{
+method:"POST",
+body:JSON.stringify({
+razorpay_order_id:response.razorpay_order_id,
+razorpay_payment_id:response.razorpay_payment_id,
+razorpay_signature:response.razorpay_signature,
+amount:amount
+})
+});
+
+if(verify.status==="success"){
+alert("Payment successful!");
+loadDashboard();
+}else{
+alert("Payment verification failed");
+}
+}
+};
+
+new Razorpay(options).open();
+
+}catch(e){
+alert(e.message);
+}
+}
+
+function logout(){
+firebase.auth().signOut().catch(()=>{});
+localStorage.removeItem("token");
+localStorage.removeItem("user");
+location.reload();
+}
+
+window.addEventListener("load",()=>{
+if(localStorage.getItem("token")){
+loadDashboard();
+}
+});
+</script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</body>
+</html>

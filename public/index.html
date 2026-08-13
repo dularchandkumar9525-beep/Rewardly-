@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6c5ce7">
+<title>Rewardly - Earn Rewards</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+ --primary:#6c5ce7;
+ --primary2:#8e7cff;
+ --bg:#f5f6fb;
+ --card:#fff;
+ --text:#181a20;
+ --muted:#747985;
+ --green:#12a875;
+ --red:#e84d5b;
+ --border:#ececf2;
+}
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.app{max-width:520px;margin:auto;min-height:100vh}
+.screen{padding:16px 16px 90px}
+.card{
+ background:var(--card);
+ border:1px solid var(--border);
+ border-radius:20px;
+ padding:18px;
+ margin-bottom:14px;
+ box-shadow:0 6px 24px rgba(25,25,60,.05);
+}
+.topbar{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ margin-bottom:18px;
+}
+.brand{font-size:24px;font-weight:800}
+.brand span{color:var(--primary)}
+.avatar{
+ width:42px;height:42px;border-radius:50%;
+ display:flex;align-items:center;justify-content:center;
+ background:#eeeaff;color:var(--primary);font-weight:800;
+}
+.login-wrap{
+ min-height:100vh;display:flex;align-items:center;
+ justify-content:center;padding:20px;
+}
+.login-card{
+ width:100%;max-width:410px;background:white;
+ border-radius:28px;padding:28px 22px;
+ box-shadow:0 15px 50px rgba(20,20,50,.1);
+}
+.logo{
+ width:70px;height:70px;border-radius:22px;
+ background:linear-gradient(135deg,var(--primary),var(--primary2));
+ color:white;display:flex;align-items:center;
+ justify-content:center;font-size:34px;margin:0 auto 18px;
+}
+.login-card h1{text-align:center;margin:0 0 7px}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:25px}
+.btn{
+ width:100%;border:0;border-radius:13px;
+ padding:13px 15px;font-weight:700;margin-top:9px;
+}
+.google{background:#4285f4;color:#fff}
+.phone{background:#15ad76;color:#fff}
+.primary{background:var(--primary);color:#fff}
+.dark{background:#20222a;color:#fff}
+.light{background:#f0efff;color:var(--primary)}
+.danger{background:#fff0f1;color:var(--red)}
+input{
+ width:100%;padding:13px 14px;border:1px solid var(--border);
+ border-radius:12px;outline:none;background:#fafafd;margin-top:8px;
+}
+input:focus{border-color:var(--primary)}
+.hero{
+ color:white;
+ background:linear-gradient(135deg,#6655e8,#8b79ff);
+ border-radius:24px;padding:22px;
+ margin-bottom:14px;
+ box-shadow:0 12px 28px rgba(108,92,231,.25);
+}
+.hero small{opacity:.85}
+.hero .points{font-size:36px;font-weight:850;margin:7px 0 2px}
+.hero .rupees{font-size:14px;opacity:.9}
+.hero-actions{display:flex;gap:9px;margin-top:18px}
+.hero-actions button{flex:1}
+.white-btn{background:white;color:var(--primary);border:0;border-radius:11px;padding:11px;font-weight:800}
+.section-title{
+ display:flex;justify-content:space-between;align-items:center;
+ margin:22px 2px 10px;
+}
+.section-title h3{margin:0;font-size:17px}
+.muted{color:var(--muted)}
+.task{
+ display:flex;align-items:center;gap:13px;
+ padding:14px 0;border-bottom:1px solid var(--border);
+}
+.task:last-child{border-bottom:0}
+.task-icon{
+ width:45px;height:45px;border-radius:14px;
+ background:#f0efff;color:var(--primary);
+ display:flex;align-items:center;justify-content:center;font-size:21px;
+ flex:none;
+}
+.task-info{flex:1;min-width:0}
+.task-info b{display:block}
+.task-info small{color:var(--muted)}
+.reward{color:var(--green);font-weight:800;font-size:13px}
+.task button{
+ border:0;background:#eeeaff;color:var(--primary);
+ border-radius:10px;padding:8px 10px;font-weight:800;
+}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{
+ background:white;border:1px solid var(--border);
+ border-radius:17px;padding:15px;
+}
+.stat .value{font-size:21px;font-weight:800;margin-top:4px}
+.stat small{color:var(--muted)}
+.row{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:10px;
+}
+.list-item{
+ padding:14px 0;border-bottom:1px solid var(--border);
+}
+.list-item:last-child{border-bottom:0}
+.badge{
+ display:inline-block;padding:5px 8px;border-radius:8px;
+ background:#edf9f4;color:var(--green);font-size:11px;font-weight:800;
+}
+.ref-code{
+ background:#f5f3ff;border:1px dashed #b7afff;
+ color:var(--primary);padding:15px;border-radius:13px;
+ text-align:center;font-size:23px;font-weight:850;letter-spacing:2px;
+}
+.bottom{
+ position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+ width:100%;max-width:520px;height:72px;
+ background:rgba(255,255,255,.96);
+ backdrop-filter:blur(15px);
+ border-top:1px solid var(--border);
+ display:flex;z-index:50;
+ padding-bottom:env(safe-area-inset-bottom);
+}
+.nav{
+ flex:1;border:0;background:transparent;color:#9295a0;
+ display:flex;flex-direction:column;align-items:center;
+ justify-content:center;gap:4px;font-size:11px;font-weight:700;
+}
+.nav .ico{font-size:21px}
+.nav.active{color:var(--primary)}
+.page{display:none}
+.page.active{display:block}
+.empty{
+ text-align:center;padding:28px 10px;color:var(--muted);
+}
+.toast{
+ position:fixed;left:50%;bottom:88px;transform:translateX(-50%);
+ background:#20222a;color:#fff;padding:11px 15px;border-radius:12px;
+ z-index:100;display:none;font-size:13px;
+}
+.spinner{
+ width:22px;height:22px;border:3px solid #ddd;
+ border-top-color:var(--primary);border-radius:50%;
+ animation:spin .8s linear infinite;margin:20px auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-wrap">
+<div class="login-card">
+<div class="logo">🎁</div>
+<h1>Welcome to Rewardly</h1>
+<p class="subtitle">Complete tasks. Earn points. Get rewards.</p>
+
+<button class="btn google" onclick="loginWithGoogle()">
+Continue with Google
+</button>
+
+<button class="btn phone" onclick="togglePhone()">
+Continue with Phone OTP
+</button>
+
+<div id="phoneBox" class="hidden">
+<input id="phoneNumber" type="tel" placeholder="+919876543210">
+<div id="recaptcha-container"></div>
+<button class="btn dark" onclick="sendOTP()">Send OTP</button>
+
+<div id="otpBox" class="hidden">
+<input id="otpCode" inputmode="numeric" placeholder="Enter 6 digit OTP">
+<button class="btn primary" onclick="verifyOTP()">Verify OTP</button>
+</div>
+</div>
+
+<p style="font-size:12px;text-align:center;color:#999;margin-top:20px">
+By continuing, you agree to use Rewardly responsibly.
+</p>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app hidden">
+
+<!-- HOME -->
+<div id="homePage" class="page active screen">
+<div class="topbar">
+<div>
+<div class="brand">Reward<span>ly</span></div>
+<div style="font-size:13px;color:var(--muted);margin-top:3px">
+Hi, <span id="userName">User</span>
+</div>
+<div id="userEmail" style="display:none"></div>
+</div>
+<div class="avatar" id="topAvatar">U</div>
+</div>
+
+<div class="hero">
+<small>Available Points</small>
+<div class="points" id="homePoints">0</div>
+<div class="rupees" id="homeRupees">₹0.00 value</div>
+
+<div class="hero-actions">
+<button class="white-btn" onclick="openPage('wallet')">💰 Wallet</button>
+<button class="white-btn" onclick="claimBonus()">🎁 Bonus</button>
+</div>
+</div>
+
+<div class="stats">
+<div class="stat">
+<small>Tasks Completed</small>
+<div class="value" id="completedCount">0</div>
+</div>
+<div class="stat">
+<small>Referral Code</small>
+<div class="value" id="shortReferral">---</div>
+</div>
+</div>
+
+<div class="section-title">
+<h3>🔥 Available Tasks</h3>
+<button style="border:0;background:none;color:var(--primary);font-weight:800"
+onclick="openPage('tasks')">View All</button>
+</div>
+
+<div class="card" id="homeTasks">
+<div class="spinner"></div>
+</div>
+
+<div class="card">
+<div class="row">
+<div>
+<b>👥 Invite friends</b>
+<div class="muted" style="font-size:13px;margin-top:4px">
+Share your referral code and earn eligible rewards
+</div>
+</div>
+<button class="light" style="width:auto;border:0;border-radius:10px;padding:9px 12px"
+onclick="openPage('referral')">Invite</button>
+</div>
+</div>
+</div>
+
+<!-- TASKS -->
+<div id="tasksPage" class="page screen">
+<div class="topbar">
+<div>
+<h2 style="margin:0">🎯 Tasks</h2>
+<small class="muted">Complete available tasks</small>
+</div>
+</div>
+
+<div class="card" id="allTasks">
+<div class="spinner"></div>
+</div>
+</div>
+
+<!-- WALLET -->
+<div id="walletPage" class="page screen">
+<div class="topbar">
+<div>
+<h2 style="margin:0">💰 Wallet</h2>
+<small class="muted">Your Rewardly balance</small>
+</div>
+</div>
+
+<div class="hero">
+<small>Points Balance</small>
+<div class="points" id="walletPoints">0</div>
+<div class="rupees" id="walletRupees">₹0.00</div>
+</div>
+
+<div class="card">
+<h3>Add Money</h3>
+<p class="muted" style="font-size:13px">
+Use the configured payment gateway to add money.
+</p>
+<button class="btn dark" onclick="addMoney(10)">Add ₹10</button>
+<button class="btn primary" onclick="addMoney(50)">Add ₹50</button>
+</div>
+
+<div class="card">
+<h3>Withdraw</h3>
+<p class="muted" style="font-size:13px">
+100 points = ₹1
+</p>
+<input id="withdrawPoints" type="number" min="100" placeholder="Points to withdraw">
+<input id="withdrawMethod" placeholder="UPI ID">
+<button class="btn primary" onclick="withdraw()">Request Withdrawal</button>
+</div>
+
+<div class="card">
+<h3>📜 Recent Transactions</h3>
+<div id="transactions">
+<div class="empty">No transaction data available</div>
+</div>
+</div>
+</div>
+
+<!-- REFERRAL -->
+<div id="referralPage" class="page screen">
+<div class="topbar">
+<div>
+<h2 style="margin:0">👥 Referral</h2>
+<small class="muted">Invite friends to Rewardly</small>
+</div>
+</div>
+
+<div class="card">
+<p class="muted">Your referral code</p>
+<div class="ref-code" id="referralCode">---</div>
+<button class="btn primary" onclick="copyReferral()">📋 Copy Referral Code</button>
+<button class="btn light" onclick="shareReferral()">📤 Share</button>
+</div>
+
+<div class="card">
+<h3>How it works</h3>
+<div class="list-item">1️⃣ Share your referral code</div>
+<div class="list-item">2️⃣ Friend creates an eligible account</div>
+<div class="list-item">3️⃣ Eligible referral reward is credited according to the program rules</div>
+</div>
+</div>
+
+<!-- PROFILE -->
+<div id="profilePage" class="page screen">
+<div class="topbar">
+<div>
+<h2 style="margin:0">👤 Profile</h2>
+<small class="muted">Account information</small>
+</div>
+</div>
+
+<div class="card" style="text-align:center">
+<div class="avatar" id="profileAvatar" style="margin:auto;width:70px;height:70px;font-size:25px">U</div>
+<h2 id="profileName" style="margin:12px 0 3px">User</h2>
+<p class="muted" id="profileEmail">---</p>
+</div>
+
+<div class="card">
+<div class="list-item">
+<div class="muted">Points</div>
+<b id="profilePoints">0</b>
+</div>
+<div class="list-item">
+<div class="muted">Referral Code</div>
+<b id="profileReferral">---</b>
+</div>
+<div class="list-item">
+<div class="muted">Account Type</div>
+<b id="profileRole">User</b>
+</div>
+</div>
+
+<div class="card">
+<button class="btn danger" onclick="logout()">🚪 Logout</button>
+</div>
+</div>
+
+<!-- NAVIGATION -->
+<div class="bottom">
+<button class="nav active" data-page="home" onclick="openPage('home')">
+<span class="ico">🏠</span>Home
+</button>
+<button class="nav" data-page="tasks" onclick="openPage('tasks')">
+<span class="ico">🎯</span>Tasks
+</button>
+<button class="nav" data-page="wallet" onclick="openPage('wallet')">
+<span class="ico">💰</span>Wallet
+</button>
+<button class="nav" data-page="referral" onclick="openPage('referral')">
+<span class="ico">👥</span>Referral
+</button>
+<button class="nav" data-page="profile" onclick="openPage('profile')">
+<span class="ico">👤</span>Profile
+</button>
+</div>
+
+</div>
+
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyBaLYru0CZjVXxc4sU0KEiHw0mcz-8LiQY",
+authDomain:"rewardly-5e54a.firebaseapp.com",
+projectId:"rewardly-5e54a",
+storageBucket:"rewardly-5e54a.firebasestorage.app",
+messagingSenderId:"648357307052",
+appId:"1:648357307052:web:9732089e2bb0b4bbb4f509",
+measurementId:"G-ET7FJLYGGT"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+let currentUser=null;
+let confirmationResult=null;
+
+function showToast(message){
+const t=document.getElementById("toast");
+t.textContent=message;
+t.style.display="block";
+clearTimeout(window.toastTimer);
+window.toastTimer=setTimeout(()=>t.style.display="none",2500);
+}
+
+function pointsToRupees(points){
+return "₹"+(Number(points||0)/100).toFixed(2);
+}
+
+function setInitials(name){
+return String(name||"U").trim().charAt(0).toUpperCase();
+}
+
+function togglePhone(){
+document.getElementById("phoneBox").classList.toggle("hidden");
+
+if(!window.recaptchaVerifier){
+window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
+"recaptcha-container",
+{size:"invisible"}
+);
+}
+}
+
+function loginWithGoogle(){
+const provider=new firebase.auth.GoogleAuthProvider();
+
+firebase.auth().signInWithPopup(provider)
+.then(result=>sendFirebaseToken(result.user))
+.catch(error=>showToast(error.message));
+}
+
+function sendOTP(){
+const phone=document.getElementById("phoneNumber").value.trim();
+
+if(!phone){
+showToast("Enter phone number with country code");
+return;
+}
+
+if(!window.recaptchaVerifier){
+window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
+"recaptcha-container",{size:"invisible"}
+);
+}
+
+firebase.auth().signInWithPhoneNumber(
+phone,
+window.recaptchaVerifier
+)
+.then(result=>{
+confirmationResult=result;
+document.getElementById("otpBox").classList.remove("hidden");
+showToast("OTP sent successfully");
+})
+.catch(error=>{
+showToast(error.message);
+if(window.recaptchaVerifier){
+try{window.recaptchaVerifier.clear()}catch(e){}
+window.recaptchaVerifier=null;
+}
+});
+}
+
+function verifyOTP(){
+const code=document.getElementById("otpCode").value.trim();
+
+if(!confirmationResult){
+showToast("Please request OTP first");
+return;
+}
+
+confirmationResult.confirm(code)
+.then(result=>sendFirebaseToken(result.user))
+.catch(error=>showToast("Invalid OTP"));
+}
+
+async function sendFirebaseToken(user){
+try{
+const idToken=await user.getIdToken();
+
+const response=await fetch("/api/auth/firebase",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({idToken})
+});
+
+const data=await response.json();
+
+if(!data.ok){
+throw new Error(data.error||"Authentication failed");
+}
+
+localStorage.setItem("token",data.token);
+localStorage.setItem("user",JSON.stringify(data.user));
+
+showToast("Login successful");
+await loadDashboard();
+
+}catch(error){
+showToast(error.message);
+}
+}
+
+async function api(url,options={}){
+const token=localStorage.getItem("token");
+
+options.headers={
+"Content-Type":"application/json",
+...(options.headers||{})
+};
+
+if(token){
+options.headers.Authorization="Bearer "+token;
+}
+
+const response=await fetch(url,options);
+const text=await response.text();
+
+let data;
+try{
+data=JSON.parse(text);
+}catch(error){
+throw new Error("Server returned an invalid response");
+}
+
+if(response.status===401){
+logout(false);
+throw new Error("Session expired. Please login again.");
+}
+
+return data;
+}
+
+async function loadDashboard(){
+try{
+const data=await api("/api/me");
+
+if(!data.user){
+throw new Error("User not found");
+}
+
+currentUser=data.user;
+
+const loginScreen = document.getElementById("loginScreen");
+const app = document.getElementById("app");
+
+if (!loginScreen || !app) {
+  throw new Error("Rewardly app elements are missing");
+}
+
+loginScreen.classList.add("hidden");
+app.classList.remove("hidden");
+
+updateUserUI();
+await loadTasks();
+
+}catch(error){
+console.log(error);
+localStorage.removeItem("token");
+localStorage.removeItem("user");
+document.getElementById("loginScreen").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
+showToast(error.message);
+}
+}
+
+function updateUserUI(){
+console.log("Checking elements...");
+[
+"homePoints",
+"homeRupees",
+"walletPoints",
+"walletRupees",
+"userName",
+"userEmail",
+"profileName",
+"profileEmail",
+"profilePoints",
+"profileReferral",
+"profileRole",
+"referralCode",
+"shortReferral",
+"topAvatar",
+"profileAvatar"
+].forEach(id=>{
+if(!document.getElementById(id)){
+console.log("MISSING ELEMENT:",id);
+}
+});
+
+const u=currentUser;
+
+[
+"homePoints","homeRupees","walletPoints","walletRupees",
+"userName","userEmail","profileName","profileEmail",
+"profilePoints","profileReferral","profileRole",
+"referralCode","shortReferral","topAvatar","profileAvatar"
+].forEach(id=>{
+if(!document.getElementById(id)){
+alert("MISSING: "+id);
+throw new Error("Missing element: "+id);
+}
+});
+
+document.getElementById("homePoints").textContent=Number(u.points||0).toLocaleString();
+document.getElementById("homeRupees").textContent=pointsToRupees(u.points)+" value";
+
+document.getElementById("walletPoints").textContent=Number(u.points||0).toLocaleString();
+document.getElementById("walletRupees").textContent=pointsToRupees(u.points);
+
+document.getElementById("userName").textContent=u.name||"User";
+document.getElementById("userEmail").textContent=u.email||"";
+
+document.getElementById("profileName").textContent=u.name||"User";
+document.getElementById("profileEmail").textContent=u.email||"";
+document.getElementById("profilePoints").textContent=Number(u.points||0).toLocaleString();
+document.getElementById("profileReferral").textContent=u.referral_code||"---";
+document.getElementById("profileRole").textContent=u.role||"user";
+
+document.getElementById("referralCode").textContent=u.referral_code||"---";
+document.getElementById("shortReferral").textContent=(u.referral_code||"---").slice(0,8);
+
+const initial=setInitials(u.name||u.email);
+document.getElementById("topAvatar").textContent=initial;
+document.getElementById("profileAvatar").textContent=initial;
+}
+
+async function loadTasks(){
+try{
+const data=await api("/api/tasks");
+const tasks=data.tasks||[];
+
+renderTasks("allTasks",tasks,false);
+renderTasks("homeTasks",tasks.slice(0,3),true);
+
+}catch(error){
+document.getElementById("allTasks").innerHTML=
+'<div class="empty">Unable to load tasks</div>';
+}
+}
+
+function renderTasks(elementId,tasks,compact){
+const box=document.getElementById(elementId);
+
+if(!tasks.length){
+box.innerHTML='<div class="empty">No tasks available right now</div>';
+return;
+}
+
+box.innerHTML="";
+
+tasks.forEach(task=>{
+const item=document.createElement("div");
+item.className="task";
+
+item.innerHTML=`
+<div class="task-icon">🎯</div>
+<div class="task-info">
+<b>${escapeHtml(task.title)}</b>
+<small>${escapeHtml(task.description||"Complete this task")}</small>
+<div class="reward">+${Number(task.reward||0).toLocaleString()} points</div>
+</div>
+${compact?"":'<button>Start</button>'}
+`;
+
+if(!compact){
+item.querySelector("button").onclick=()=>completeTask(task.id);
+}
+
+box.appendChild(item);
+});
+}
+
+async function completeTask(id){
+try{
+const data=await api("/api/tasks/"+id,{method:"POST"});
+
+if(data.error){
+showToast(data.error);
+return;
+}
+
+showToast("Task completed successfully");
+await loadDashboard();
+
+}catch(error){
+showToast(error.message);
+}
+}
+
+async function claimBonus(){
+try{
+const data=await api("/api/bonus",{method:"POST"});
+
+if(data.error){
+showToast(data.error);
+return;
+}
+
+showToast("Daily bonus claimed");
+await loadDashboard();
+
+}catch(error){
+showToast(error.message);
+}
+}
+
+async function withdraw(){
+const points=Number(document.getElementById("withdrawPoints").value);
+const method=document.getElementById("withdrawMethod").value.trim();
+
+if(!points||points<100){
+showToast("Minimum withdrawal is 100 points");
+return;
+}
+
+if(points%100!==0){
+showToast("Use points in multiples of 100");
+return;
+}
+
+if(!method){
+showToast("Enter your UPI ID");
+return;
+}
+
+if(points>Number(currentUser.points||0)){
+showToast("Insufficient points");
+return;
+}
+
+try{
+const data=await api("/api/withdraw",{
+method:"POST",
+body:JSON.stringify({
+points:points,
+method:method
+})
+});
+
+if(data.error){
+showToast(data.error);
+return;
+}
+
+showToast("Withdrawal request submitted");
+document.getElementById("withdrawPoints").value="";
+document.getElementById("withdrawMethod").value="";
+await loadDashboard();
+
+}catch(error){
+showToast(error.message);
+}
+}
+
+async function addMoney(amount){
+const token=localStorage.getItem("token");
+
+if(!token){
+showToast("Please login first");
+return;
+}
+
+try{
+const data=await api("/api/payment/create-order",{
+method:"POST",
+body:JSON.stringify({amount:amount})
+});
+
+if(!data.order){
+showToast(data.error||"Unable to create payment");
+return;
+}
+
+const options={
+key:data.key_id,
+amount:data.order.amount,
+currency:"INR",
+name:"Rewardly",
+description:"Add money to wallet",
+order_id:data.order.id,
+
+handler:async function(response){
+try{
+const verify=await api("/api/payment/verify",{
+method:"POST",
+body:JSON.stringify({
+razorpay_order_id:response.razorpay_order_id,
+razorpay_payment_id:response.razorpay_payment_id,
+razorpay_signature:response.razorpay_signature,
+amount:amount
+})
+});
+
+if(verify.status==="success"){
+showToast("Payment successful");
+await loadDashboard();
+}else{
+showToast("Payment verification failed");
+}
+}catch(error){
+showToast(error.message);
+}
+}
+};
+
+const razorpay=new Razorpay(options);
+razorpay.open();
+
+}catch(error){
+showToast(error.message);
+}
+}
+
+function openPage(page){
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+
+const target=document.getElementById(page+"Page");
+if(target)target.classList.add("active");
+
+document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));
+
+const nav=document.querySelector('.nav[data-page="'+page+'"]');
+if(nav)nav.classList.add("active");
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+if(page==="wallet"){
+loadTransactions();
+}
+}
+
+async function loadTransactions(){
+const box=document.getElementById("transactions");
+
+try{
+const data=await api("/api/wallet");
+
+if(data.transactions&&data.transactions.length){
+box.innerHTML="";
+
+data.transactions.slice(0,10).forEach(tx=>{
+const item=document.createElement("div");
+item.className="list-item";
+
+item.innerHTML=`
+<div class="row">
+<div>
+<b>${escapeHtml(tx.note||tx.type||"Transaction")}</b>
+<div class="muted" style="font-size:12px">
+${tx.at?new Date(tx.at).toLocaleString():""}
+</div>
+</div>
+<strong style="color:${Number(tx.points||0)>=0?"var(--green)":"var(--red)"}">
+${Number(tx.points||0)>=0?"+":""}${Number(tx.points||0)}
+</strong>
+</div>
+`;
+
+box.appendChild(item);
+});
+}else{
+box.innerHTML='<div class="empty">No transactions yet</div>';
+}
+
+}catch(error){
+box.innerHTML='<div class="empty">Transaction history unavailable</div>';
+}
+}
+
+function copyReferral(){
+const code=currentUser?.referral_code;
+
+if(!code)return;
+
+navigator.clipboard.writeText(code)
+.then(()=>showToast("Referral code copied"))
+.catch(()=>showToast("Copy failed"));
+}
+
+function shareReferral(){
+const code=currentUser?.referral_code;
+
+if(!code)return;
+
+const text="Join Rewardly using my referral code: "+code;
+
+if(navigator.share){
+navigator.share({
+title:"Join Rewardly",
+text:text
+}).catch(()=>{});
+}else{
+copyReferral();
+}
+}
+
+function logout(show=true){
+firebase.auth().signOut().catch(()=>{});
+localStorage.removeItem("token");
+localStorage.removeItem("user");
+
+document.getElementById("loginScreen").classList.remove("hidden");
+document.getElementById("app").classList.add("hidden");
+
+if(show)showToast("Logged out");
+}
+
+function escapeHtml(value){
+return String(value??"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+}
+
+window.addEventListener("load",()=>{
+const token=localStorage.getItem("token");
+
+if(token){
+loadDashboard();
+}else{
+document.getElementById("loginScreen").classList.remove("hidden");
+}
+});
+</script>
+
+</body>
+</html>

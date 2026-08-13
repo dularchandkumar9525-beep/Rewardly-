@@ -1,0 +1,6 @@
+node_modules
+firebase-service-account.json
+.env
+data.json
+rewardly/node_modules
+functions/node_modules
