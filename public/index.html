@@ -431,6 +431,16 @@ measurementId:"G-ET7FJLYGGT"
 
 firebase.initializeApp(firebaseConfig);
 
+firebase.auth().getRedirectResult()
+.then(result => {
+  if (result.user) {
+    sendFirebaseToken(result.user);
+  }
+})
+.catch(error => {
+  showToast(error.message);
+});
+
 let currentUser=null;
 let confirmationResult=null;
 
@@ -462,11 +472,8 @@ window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
 }
 
 function loginWithGoogle(){
-const provider=new firebase.auth.GoogleAuthProvider();
-
-firebase.auth().signInWithPopup(provider)
-.then(result=>sendFirebaseToken(result.user))
-.catch(error=>showToast(error.message));
+const provider = new firebase.auth.GoogleAuthProvider();
+firebase.auth().signInWithRedirect(provider)
 }
 
 function sendOTP(){
@@ -480,7 +487,7 @@ return;
 if(!window.recaptchaVerifier){
 window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier(
 "recaptcha-container",{size:"invisible"}
-);
++);
 }
 
 firebase.auth().signInWithPhoneNumber(
