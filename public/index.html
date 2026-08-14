@@ -419,6 +419,19 @@ Use the configured payment gateway to add money.
 </div>
 
 <script>
+window.addEventListener("error", function(e) {
+  var d=document.createElement("div");
+  d.style="position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#111;color:#fff;padding:15px;border-radius:10px;font:14px monospace;";
+  d.textContent="JS ERROR: "+(e.message||"Unknown error");
+  document.body.appendChild(d);
+});
+
+window.addEventListener("unhandledrejection", function(e) {
+  var d=document.createElement("div");
+  d.style="position:fixed;top:10px;left:10px;right:10px;z-index:99999;background:#111;color:#fff;padding:15px;border-radius:10px;font:14px monospace;";
+  d.textContent="PROMISE ERROR: "+(e.reason?.message||e.reason||"Unknown error");
+  document.body.appendChild(d);
+});
 const firebaseConfig={
 apiKey:"AIzaSyBaLYru0CZjVXxc4sU0KEiHw0mcz-8LiQY",
 authDomain:"rewardly-5e54a.firebaseapp.com",
